@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:api_demo/models.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +17,7 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  late Future<List<Map>> futureUser;
+  late Future<List<User>> futureUser;
 
   @override
   void initState() {
@@ -32,7 +33,7 @@ class _MainAppState extends State<MainApp> {
         appBar: AppBar(
           title: const Text("User App"),
         ),
-        body: FutureBuilder<List<Map>>(
+        body: FutureBuilder<List<User>>(
           future: futureUser,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
@@ -46,12 +47,12 @@ class _MainAppState extends State<MainApp> {
                     margin: const EdgeInsets.all(5),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundImage: NetworkImage(
-                            snapshot.data![index]["picture"]["medium"]),
+                        backgroundImage:
+                            NetworkImage(snapshot.data![index].imageUrl),
                       ),
                       title: Text(
-                          "${snapshot.data![index]["name"]["title"]} ${snapshot.data![index]["name"]["first"]} ${snapshot.data![index]["name"]["last"]}"),
-                      subtitle: Text(snapshot.data![index]["email"]),
+                          "${snapshot.data![index].title} ${snapshot.data![index].firstname} ${snapshot.data![index].lastname}"),
+                      subtitle: Text(snapshot.data![index].email),
                     ),
                   );
                 },
@@ -87,24 +88,9 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
-Future<List<Map>> fetchUser() async {
+Future<List<User>> fetchUser() async {
   var user = await http.get(Uri.parse("https://randomuser.me/api/?results=5"));
   var data = jsonDecode(user.body);
-  return List<Map>.from(data["results"]);
-}
-
-class PersonProfile {
-  String? title;
-  String? first;
-  String? last;
-  String? profilePicture;
-
-  PersonProfile({this.title, this.first, this.last, this.profilePicture});
-
-  factory PersonProfile.fromMaptoObject(Map result) {
-    return PersonProfile(
-        title: result["name"]["title"],
-        first: result["name"]["title"],
-        last: result["name"]["title"]);
-  }
+  List result = data["results"];
+  return List<User>.from(result.map((e) => User.fromMapToObject(e)));
 }
